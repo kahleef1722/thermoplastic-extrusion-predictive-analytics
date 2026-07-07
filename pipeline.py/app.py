@@ -67,31 +67,36 @@ st.markdown("""
     border-radius: 10px;
     padding: 0.7rem 1.4rem;
 }
+
 [data-testid="stMetric"] {
-    background: white;
+    background: var(--secondary-background-color);
     padding: 18px;
     border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"],
+[data-testid="stMetric"] * {
+    color: var(--text-color) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("AI-Based Quality Risk Prediction System")
 st.caption(
-    "Predict extrusion failure risk, likely defect type "
-    "and local parameter sensitivity."
+    "Predict extrusion failure risk, likely defect type and local parameter sensitivity."
 )
 
 with st.sidebar:
     st.header("System Guide")
     st.write(
-        "Enter tube requirements, tolerances and current "
-        "process settings."
+        "Enter tube requirements, tolerances and current process settings."
     )
     st.info(
-        "Parameter analysis shows how the trained model "
-        "responds to small tested input changes. "
-        "These are model-based indications, not proven physical causes."
+        "Parameter analysis shows how the trained model responds to small tested "
+        "input changes. These are model-based indications, not proven physical causes."
     )
     st.metric("Model 1", "Pass / Fail")
     st.metric("Model 2", "Defect Type")
@@ -208,9 +213,7 @@ with st.form("quality_form"):
             step=0.01
         )
 
-    submitted = st.form_submit_button(
-        "Predict Quality Risk"
-    )
+    submitted = st.form_submit_button("Predict Quality Risk")
 
 if submitted:
     values = {
@@ -246,11 +249,7 @@ if submitted:
     def sensitivity_analysis():
         best_changes = []
         worst_changes = []
-
-        skip = {
-            "Material_Type",
-            "Machine_ID"
-        }
+        skip = {"Material_Type", "Machine_ID"}
 
         for col in features:
             if col in skip:
@@ -266,7 +265,6 @@ if submitted:
             ]:
                 tested_sample = sample.copy()
                 tested_value = current + change
-
                 tested_sample.at[0, col] = tested_value
 
                 new_risk = get_fail_risk(tested_sample)
@@ -337,45 +335,32 @@ if submitted:
         st.subheader("Prediction Result")
 
         if status == 1:
-            st.success(
-                "Predicted Quality Status: PASS"
-            )
-
+            st.success("Predicted Quality Status: PASS")
             st.info(
-                "No defect prediction is triggered because "
-                "Model 1 predicts PASS."
+                "No defect prediction is triggered because Model 1 predicts PASS."
             )
-
         else:
-            st.error(
-                "Predicted Quality Status: FAIL"
-            )
+            st.error("Predicted Quality Status: FAIL")
 
             defect = model2.predict(sample)[0]
             defect_probs = model2.predict_proba(sample)[0]
             confidence = max(defect_probs) * 100
 
-            st.warning(
-                f"Likely Defect: {defect}"
-            )
-
+            st.warning(f"Likely Defect: {defect}")
             st.metric(
                 "Defect Confidence",
                 f"{confidence:.2f}%"
             )
 
         st.subheader("Likely Risk Contributors")
-
         st.caption(
-            "Small tested changes that increased the "
-            "model's predicted failure risk."
+            "Small tested changes that increased the model's predicted failure risk."
         )
 
         if risk_contributors.empty:
             st.info(
                 "No strong local risk contributor was detected."
             )
-
         else:
             for _, row in risk_contributors.head(5).iterrows():
                 unit = units.get(row["feature"], "")
@@ -389,18 +374,14 @@ if submitted:
                 )
 
         st.subheader("Inputs That May Reduce Failure Risk")
-
         st.caption(
-            "For each parameter, only the best tested direction "
-            "is shown."
+            "For each parameter, only the best tested direction is shown."
         )
 
         if risk_reductions.empty:
             st.info(
-                "No tested parameter change produced a "
-                "meaningful local risk reduction."
+                "No tested parameter change produced a meaningful local risk reduction."
             )
-
         else:
             for _, row in risk_reductions.head(5).iterrows():
                 unit = units.get(row["feature"], "")
@@ -414,18 +395,14 @@ if submitted:
                 )
 
         st.subheader("Suggested Adjustments")
-
         st.caption(
-            "Best local changes found by testing both directions "
-            "for each parameter."
+            "Best local changes found by testing both directions for each parameter."
         )
 
         if risk_reductions.empty:
             st.info(
-                "No meaningful adjustment was found "
-                "within the tested range."
+                "No meaningful adjustment was found within the tested range."
             )
-
         else:
             for i, (_, row) in enumerate(
                 risk_reductions.head(5).iterrows(),
@@ -605,7 +582,6 @@ if submitted:
 
     with st.expander("View Input Summary"):
         display_sample = sample.copy()
-
         display_sample["Material_Type"] = material
         display_sample["Machine_ID"] = machine
 
@@ -617,8 +593,7 @@ if submitted:
         )
 
     st.caption(
-        "Important: risk contributors and suggested adjustments "
-        "represent local model sensitivity, not proven physical "
-        "causation. Validate process changes with production trials "
-        "and engineering limits before changing machine settings."
+        "Important: risk contributors and suggested adjustments represent local "
+        "model sensitivity, not proven physical causation. Validate process changes "
+        "with production trials and engineering limits before changing machine settings."
     )
