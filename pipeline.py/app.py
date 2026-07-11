@@ -6,6 +6,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / "synthetic_thermoplastic_extrusion_quality_dataset.csv"
+MODEL_DIR = BASE_DIR
+MODEL1_PATH = MODEL_DIR / "quality_status_model.pkl"
+MODEL2_PATH = MODEL_DIR / "defect_type_model.pkl"
+FEATURES_PATH = MODEL_DIR / "model_features.pkl"
 
 
 def get_default_sample():
@@ -20,8 +24,12 @@ def get_default_sample():
         row = failed_rows.sample(n=1).iloc[0]
 
     defaults = row.to_dict()
-    defaults["Material_Type"] = defaults.get("Material_Type") or "PU"
-    defaults["Machine_ID"] = defaults.get("Machine_ID") or "EXT-01"
+    material_code = defaults.get("Material_Type")
+    machine_code = defaults.get("Machine_ID")
+    material_map = {0: "PU", 1: "PA11", 2: "Hytrel", 3: "PA12", 4: "PVDF"}
+    machine_map = {0: "EXT-01", 1: "EXT-02", 2: "EXT-03"}
+    defaults["Material_Type"] = material_map.get(material_code, "PU")
+    defaults["Machine_ID"] = machine_map.get(machine_code, "EXT-01")
 
     for column in [
         "Vacuum_bar",
@@ -46,15 +54,6 @@ st.set_page_config(
     layout="wide"
 )
 
-import os
-
-st.write("BASE_DIR:", BASE_DIR)
-st.write("Files:")
-
-for f in os.listdir(BASE_DIR):
-    st.write(f)
-
-st.stop()
 model1 = joblib.load(MODEL1_PATH)
 model2 = joblib.load(MODEL2_PATH)
 features = joblib.load(FEATURES_PATH)
