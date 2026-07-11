@@ -46,9 +46,8 @@ st.set_page_config(
     layout="wide"
 )
 
-MODEL1_PATH = BASE_DIR / "quality_status_model.pkl"
-MODEL2_PATH = BASE_DIR / "defect_type_model.pkl"
-FEATURES_PATH = BASE_DIR / "model_features.pkl"
+st.write("✅ App started successfully")
+st.stop()
 
 model1 = joblib.load(MODEL1_PATH)
 model2 = joblib.load(MODEL2_PATH)
