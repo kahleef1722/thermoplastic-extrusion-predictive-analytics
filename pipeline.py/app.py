@@ -507,7 +507,7 @@ if submitted:
 
         st.altair_chart(
             status_chart,
-            use_container_width=True
+            width="stretch"
         )
 
         if status == 0:
@@ -553,7 +553,7 @@ if submitted:
 
             st.altair_chart(
                 defect_chart,
-                use_container_width=True
+                width="stretch"
             )
 
         st.subheader("Parameter Impact")
@@ -623,20 +623,22 @@ if submitted:
 
             st.altair_chart(
                 impact_chart,
-                use_container_width=True
+                width="stretch"
             )
 
     with st.expander("View Input Summary"):
         display_sample = sample.copy()
         display_sample["Material_Type"] = material
         display_sample["Machine_ID"] = machine
+        
+        display_df = display_sample.T.rename(columns={0: "Value"})
+        
+        display_df["Value"] = display_df["Value"].astype(str)
 
-        st.dataframe(
-            display_sample.T.rename(
-                columns={0: "Value"}
-            ),
-            use_container_width=True
-        )
+    st.dataframe(
+        display_df,
+        width="stretch"
+    )
 
     st.caption(
         "Important: risk contributors and suggested adjustments represent local "
