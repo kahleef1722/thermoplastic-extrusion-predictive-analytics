@@ -46,11 +46,15 @@ st.set_page_config(
     layout="wide"
 )
 
-features = joblib.load(BASE_DIR / "model_features.pkl")
+import os
 
-st.write("✅ model_features.pkl loaded")
+st.write("BASE_DIR:", BASE_DIR)
+st.write("Files:")
+
+for f in os.listdir(BASE_DIR):
+    st.write(f)
+
 st.stop()
-
 model1 = joblib.load(MODEL1_PATH)
 model2 = joblib.load(MODEL2_PATH)
 features = joblib.load(FEATURES_PATH)
