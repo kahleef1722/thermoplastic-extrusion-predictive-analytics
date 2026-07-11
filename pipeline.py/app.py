@@ -46,7 +46,9 @@ st.set_page_config(
     layout="wide"
 )
 
-st.write("✅ App started successfully")
+features = joblib.load(BASE_DIR / "model_features.pkl")
+
+st.write("✅ model_features.pkl loaded")
 st.stop()
 
 model1 = joblib.load(MODEL1_PATH)
