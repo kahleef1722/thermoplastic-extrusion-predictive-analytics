@@ -2,6 +2,43 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import joblib
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_PATH = BASE_DIR / "synthetic_thermoplastic_extrusion_quality_dataset.csv"
+
+
+def get_default_sample():
+    dataset = pd.read_csv(DATA_PATH)
+    failed_rows = dataset[
+        dataset["Defect_Status"].astype(str).str.strip().str.lower() == "fail"
+    ]
+
+    if failed_rows.empty:
+        row = dataset.iloc[0]
+    else:
+        row = failed_rows.sample(n=1).iloc[0]
+
+    defaults = row.to_dict()
+    defaults["Material_Type"] = defaults.get("Material_Type") or "PU"
+    defaults["Machine_ID"] = defaults.get("Machine_ID") or "EXT-01"
+
+    for column in [
+        "Vacuum_bar",
+        "Melt_Pressure_bar",
+        "Cooling_Water_Temp_C",
+        "Material_Moisture_pct"
+    ]:
+        if pd.isna(defaults.get(column)):
+            defaults[column] = dataset[column].mean()
+
+    return defaults
+
+
+if "default_sample" not in st.session_state:
+    st.session_state.default_sample = get_default_sample()
+
+default_sample = st.session_state.default_sample
 
 st.set_page_config(
     page_title="Extrusion Quality Predictor",
@@ -88,6 +125,9 @@ st.title("AI-Based Quality Risk Prediction System")
 st.caption(
     "Predict extrusion failure risk, likely defect type and local parameter sensitivity."
 )
+st.caption(
+    "The form starts from a randomly selected failing record in the dataset so the default prediction is not biased toward PASS."
+)
 
 with st.sidebar:
     st.header("System Guide")
@@ -109,19 +149,25 @@ with st.form("quality_form"):
 
         material = st.selectbox(
             "Material Type",
-            list(material_map)
+            list(material_map),
+            index=list(material_map).index(
+                default_sample.get("Material_Type", "PU")
+            )
         )
 
         machine = st.selectbox(
             "Machine ID",
-            list(machine_map)
+            list(machine_map),
+            index=list(machine_map).index(
+                default_sample.get("Machine_ID", "EXT-01")
+            )
         )
 
         target_od = st.number_input(
             "Target OD (mm)",
             min_value=4.0,
             max_value=20.0,
-            value=10.0,
+            value=float(default_sample.get("Target_Tube_OD_mm", 10.0)),
             step=0.5
         )
 
@@ -129,7 +175,7 @@ with st.form("quality_form"):
             "Target ID (mm)",
             min_value=1.0,
             max_value=20.0,
-            value=6.0,
+            value=float(default_sample.get("Target_Tube_ID_mm", 6.0)),
             step=0.5
         )
 
@@ -137,7 +183,7 @@ with st.form("quality_form"):
             "Wall Thickness (mm)",
             min_value=0.75,
             max_value=2.5,
-            value=1.5,
+            value=float(default_sample.get("Target_Wall_Thickness_mm", 1.5)),
             step=0.05
         )
 
@@ -148,7 +194,7 @@ with st.form("quality_form"):
             "OD Tolerance (mm)",
             min_value=0.01,
             max_value=0.30,
-            value=0.15,
+            value=float(default_sample.get("OD_Tolerance_mm", 0.15)),
             step=0.01
         )
 
@@ -156,7 +202,7 @@ with st.form("quality_form"):
             "ID Tolerance (mm)",
             min_value=0.01,
             max_value=0.30,
-            value=0.15,
+            value=float(default_sample.get("ID_Tolerance_mm", 0.15)),
             step=0.01
         )
 
@@ -164,7 +210,7 @@ with st.form("quality_form"):
             "Wall Tolerance (mm)",
             min_value=0.008,
             max_value=0.30,
-            value=0.10,
+            value=float(default_sample.get("Wall_Tolerance_mm", 0.10)),
             step=0.01
         )
 
@@ -173,43 +219,43 @@ with st.form("quality_form"):
 
         vacuum = st.number_input(
             "Vacuum (bar)",
-            value=-0.60,
+            value=float(default_sample.get("Vacuum_bar", -0.60)),
             step=0.01
         )
 
         rpm = st.number_input(
             "Screw Speed (RPM)",
-            value=60.0,
+            value=float(default_sample.get("Screw_RPM", 60.0)),
             step=1.0
         )
 
         z2 = st.number_input(
             "Zone 2 Temperature (°C)",
-            value=195.0,
+            value=float(default_sample.get("Zone2_Temp_C", 195.0)),
             step=1.0
         )
 
         z3 = st.number_input(
             "Zone 3 Temperature (°C)",
-            value=200.0,
+            value=float(default_sample.get("Zone3_Temp_C", 200.0)),
             step=1.0
         )
 
         pressure = st.number_input(
             "Melt Pressure (bar)",
-            value=150.0,
+            value=float(default_sample.get("Melt_Pressure_bar", 150.0)),
             step=1.0
         )
 
         puller = st.number_input(
             "Puller Speed (m/min)",
-            value=15.0,
+            value=float(default_sample.get("Puller_Speed_m_min", 15.0)),
             step=0.1
         )
 
         moisture = st.number_input(
             "Material Moisture (%)",
-            value=0.07,
+            value=float(default_sample.get("Material_Moisture_pct", 0.07)),
             step=0.01
         )
 
@@ -596,4 +642,5 @@ if submitted:
         "Important: risk contributors and suggested adjustments represent local "
         "model sensitivity, not proven physical causation. Validate process changes "
         "with production trials and engineering limits before changing machine settings."
+
     )
