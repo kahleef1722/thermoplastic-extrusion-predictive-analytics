@@ -59,7 +59,7 @@ material_map = {
     "PA11": 1,
     "Hytrel": 2,
     "PA12": 3,
-    "PVDF": 4,
+    "PVDF": 4
     
 }
 
