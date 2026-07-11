@@ -46,9 +46,13 @@ st.set_page_config(
     layout="wide"
 )
 
-model1 = joblib.load("quality_status_model.pkl")
-model2 = joblib.load("defect_type_model.pkl")
-features = joblib.load("model_features.pkl")
+MODEL1_PATH = BASE_DIR / "quality_status_model.pkl"
+MODEL2_PATH = BASE_DIR / "defect_type_model.pkl"
+FEATURES_PATH = BASE_DIR / "model_features.pkl"
+
+model1 = joblib.load(MODEL1_PATH)
+model2 = joblib.load(MODEL2_PATH)
+features = joblib.load(FEATURES_PATH)
 
 material_map = {
     "PU": 0,
