@@ -622,8 +622,7 @@ if submitted:
             )
 
             st.altair_chart(
-                impact_chart,
-                width="stretch"
+                impact_chart,width="stretch"
             )
 
     with st.expander("View Input Summary"):
