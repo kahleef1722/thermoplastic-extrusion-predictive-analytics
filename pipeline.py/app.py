@@ -323,7 +323,13 @@ if submitted:
     def sensitivity_analysis():
         best_changes = []
         worst_changes = []
-        skip = {"Material_Type", "Machine_ID"}
+        categorical_features = {
+            "Material_Type",
+            "Machine_ID",
+            "Braid_Type_Planned"
+            }
+        skip = categorical_features
+        
 
         for col in features:
             if col in skip:
@@ -632,7 +638,7 @@ if submitted:
     with st.expander("View Input Summary"):
         display_sample = sample.copy()
         display_sample["Material_Type"] = material
-        display_sample["Braid_Type_Planned"] = braid
+        display_sample["Braid_type_Planned"] = braid
         display_sample["Machine_ID"] = machine
         
         display_df = display_sample.T.rename(columns={0: "Value"})
