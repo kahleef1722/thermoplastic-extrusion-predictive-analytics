@@ -171,7 +171,7 @@ with st.form("quality_form"):
             "Braid Type",
             list(braid_map.keys()),
             index=list(braid_map.keys()).index(
-                default_sample.get("Braid_Type_Planned", "None")
+                default_sample.get("Braid_type_Planned","None")
             )
         )
         material = st.selectbox(
