@@ -1,5 +1,6 @@
 import pandas as pd
 import joblib
+from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from sklearn.metrics import f1_score
@@ -220,8 +221,12 @@ print(
 )
 
 X2 = df_failed[features]
-y2 = df_failed["Defect_Type"]
 
+label_encoder = LabelEncoder()
+
+y2 = label_encoder.fit_transform(
+    df_failed["Defect_Type"]
+)
 X2_train, X2_test, y2_train, y2_test = train_test_split(
     X2,
     y2,
@@ -230,45 +235,80 @@ X2_train, X2_test, y2_train, y2_test = train_test_split(
     stratify=y2
 )
 
-model2 = RandomForestClassifier(
-    n_estimators=300,
-    random_state=42,
-    class_weight="balanced",
-    n_jobs=-1
-)
+models2 = {
+    "Random Forest": RandomForestClassifier(
+        n_estimators=300,
+        random_state=42,
+        class_weight="balanced",
+        n_jobs=-1
+    ),
 
-model2.fit(
-    X2_train,
-    y2_train
-)
+    "XGBoost": XGBClassifier(
+        random_state=42,
+        eval_metric="mlogloss"
+    ),
 
-y2_pred = model2.predict(
-    X2_test
-)
-
-print("\nMODEL 2 RESULTS")
-
-print(
-    f"Accuracy: "
-    f"{accuracy_score(y2_test, y2_pred) * 100:.2f}%"
-)
-
-print("\nClassification Report:")
-print(
-    classification_report(
-        y2_test,
-        y2_pred,
-        zero_division=0
+    "LightGBM": LGBMClassifier(
+        random_state=42
     )
-)
+}
 
-print("\nConfusion Matrix:")
-print(
-    confusion_matrix(
+best_score = -1
+best_model = None
+
+for name, model in models2.items():
+
+    print("\n" + "=" * 50)
+    print(f"MODEL 2 - {name}")
+    print("=" * 50)
+
+    model.fit(
+        X2_train,
+        y2_train
+    )
+
+    y2_pred = model.predict(
+        X2_test
+    )
+
+    accuracy = accuracy_score(
         y2_test,
         y2_pred
     )
-)
+
+    f1 = f1_score(
+        y2_test,
+        y2_pred,
+        average="weighted"
+    )
+
+    print(f"Accuracy : {accuracy * 100:.2f}%")
+    print(f"Weighted F1 : {f1:.4f}")
+
+    print("\nClassification Report:")
+    print(
+        classification_report(
+            y2_test,
+            y2_pred,
+            zero_division=0
+        )
+    )
+
+    print("\nConfusion Matrix:")
+    print(
+        confusion_matrix(
+            y2_test,
+            y2_pred
+        )
+    )
+
+    if f1 > best_score:
+        best_score = f1
+        best_model = model
+
+model2 = best_model
+
+print("\nBest Model 2 Selected Successfully")
 
 def predict_quality(sample):
     sample = sample[features]
@@ -301,8 +341,9 @@ def predict_quality(sample):
             "Defect_Confidence": 0.0
         }
 
-    defect = model2.predict(
-        sample
+    predicted_label = model2.predict(sample)[0]
+    defect = label_encoder.inverse_transform(
+        [predicted_label]
     )[0]
 
     defect_probabilities = model2.predict_proba(
