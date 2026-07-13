@@ -2,7 +2,7 @@ import pandas as pd
 import joblib
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
-
+from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
@@ -127,46 +127,81 @@ X1_train, X1_test, y1_train, y1_test = train_test_split(
     stratify=y1
 )
 
-model1 = RandomForestClassifier(
-    n_estimators=300,
-    random_state=42,
-    class_weight="balanced",
-    n_jobs=-1
-)
+models1 = {
+    "Random Forest": RandomForestClassifier(
+        n_estimators=300,
+        random_state=42,
+        class_weight="balanced",
+        n_jobs=-1
+    ),
 
-model1.fit(
-    X1_train,
-    y1_train
-)
+    "XGBoost": XGBClassifier(
+        random_state=42,
+        eval_metric="logloss"
+    ),
 
-y1_pred = model1.predict(
-    X1_test
-)
-
-print("\nMODEL 1 RESULTS")
-
-print(
-    f"Accuracy: "
-    f"{accuracy_score(y1_test, y1_pred) * 100:.2f}%"
-)
-
-print("\nClassification Report:")
-print(
-    classification_report(
-        y1_test,
-        y1_pred,
-        target_names=["Fail", "Pass"],
-        zero_division=0
+    "LightGBM": LGBMClassifier(
+        random_state=42
     )
-)
+}
 
-print("\nConfusion Matrix:")
-print(
-    confusion_matrix(
+best_score = -1
+best_model = None
+
+for name, model in models1.items():
+
+    print("\n" + "=" * 50)
+    print(f"MODEL 1 - {name}")
+    print("=" * 50)
+
+    model.fit(
+        X1_train,
+        y1_train
+    )
+
+    y1_pred = model.predict(
+        X1_test
+    )
+
+    accuracy = accuracy_score(
         y1_test,
         y1_pred
     )
-)
+
+    f1 = f1_score(
+        y1_test,
+        y1_pred,
+        average="weighted"
+    )
+
+    print(f"Accuracy : {accuracy * 100:.2f}%")
+    print(f"Weighted F1 : {f1:.4f}")
+
+    print("\nClassification Report:")
+    print(
+        classification_report(
+            y1_test,
+            y1_pred,
+            target_names=["Fail", "Pass"],
+            zero_division=0
+        )
+    )
+
+    print("\nConfusion Matrix:")
+    print(
+        confusion_matrix(
+            y1_test,
+            y1_pred
+        )
+    )
+
+    if f1 > best_score:
+        best_score = f1
+        best_model = model
+
+model1 = best_model
+
+print("\nBest Model 1 Selected Successfully")
 
 df_failed = df[
     df["Defect_Status"] == 0
