@@ -109,8 +109,8 @@ st.markdown("""
 <style>
 .stButton > button {
     background: #0f4c81;
-    color: white;
-    border-radius: 10px;
+    color: black;
+    border-radius: 10px;s
     padding: 0.7rem 1.4rem;
 }
 
