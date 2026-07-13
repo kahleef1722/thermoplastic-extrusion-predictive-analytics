@@ -25,9 +25,13 @@ def get_default_sample():
 
     defaults = row.to_dict()
     material_code = defaults.get("Material_Type")
+    braid_code = defaults.get("Braid_Type_Planned")
+    braid_map = {"None": 0,"Aramid": 1,"SS Wire": 2,"Polyester": 3}
     machine_code = defaults.get("Machine_ID")
     material_map = {0: "PU", 1: "PA11", 2: "Hytrel", 3: "PA12", 4: "PVDF"}
+
     machine_map = {0: "EXT-01", 1: "EXT-02", 2: "EXT-03"}
+    defaults["Braid_Type_Planned"] = braid_map.get(braid_code, "None")
     defaults["Material_Type"] = material_map.get(material_code, "PU")
     defaults["Machine_ID"] = machine_map.get(machine_code, "EXT-01")
 
@@ -65,6 +69,13 @@ material_map = {
     "PA12": 3,
     "PVDF": 4
     
+}
+
+braid_map = {
+    "None": 0,
+    "Aramid": 1,
+    "SS Wire": 2,
+    "Polyester": 3,
 }
 
 machine_map = {
@@ -156,18 +167,25 @@ with st.form("quality_form"):
     with c1:
         st.subheader("Tube Requirements")
 
+        braid = st.selectbox(
+            "Braid Type",
+            list(braid_map.keys()),
+            index=list(braid_map.keys()).index(
+                default_sample.get("Braid_Type_Planned", "None")
+            )
+        )
         material = st.selectbox(
             "Material Type",
-            list(material_map),
-            index=list(material_map).index(
+            list(material_map.keys()),
+            index=list(material_map.keys()).index(
                 default_sample.get("Material_Type", "PU")
             )
         )
 
         machine = st.selectbox(
             "Machine ID",
-            list(machine_map),
-            index=list(machine_map).index(
+            list(machine_map.keys()),
+            index=list(machine_map.keys()).index(
                 default_sample.get("Machine_ID", "EXT-01")
             )
         )
@@ -273,6 +291,7 @@ with st.form("quality_form"):
 if submitted:
     values = {
         "Material_Type": material_map[material],
+        "Braid_Type_Planned": braid_map[braid],
         "Machine_ID": machine_map[machine],
         "Target_Tube_OD_mm": target_od,
         "Target_Tube_ID_mm": target_id,
@@ -613,6 +632,7 @@ if submitted:
     with st.expander("View Input Summary"):
         display_sample = sample.copy()
         display_sample["Material_Type"] = material
+        display_sample["Braid_Type_Planned"] = braid
         display_sample["Machine_ID"] = machine
         
         display_df = display_sample.T.rename(columns={0: "Value"})

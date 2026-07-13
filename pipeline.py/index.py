@@ -83,6 +83,7 @@ df["Defect_Status"] = df["Defect_Status"].map({
 })
 
 features = [
+    "Braid_Type_Planned",
     "Material_Type",
     "Machine_ID",
     "Target_Tube_OD_mm",
