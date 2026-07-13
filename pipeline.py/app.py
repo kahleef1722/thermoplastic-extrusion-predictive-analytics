@@ -449,16 +449,6 @@ if submitted:
                     f"**{abs(row['effect']):.2f} percentage points**."
                 )
 
-       
-
-                st.write(
-                    f"{i}. **{row['direction']} {row['name']}** "
-                    f"from {row['current']:.2f} to approximately "
-                    f"**{row['tested']:.2f} {unit}** "
-                    f"→ tested failure risk: "
-                    f"**{row['risk']:.2f}%**"
-                )
-
     with right:
         st.subheader("Quality Probability")
 
