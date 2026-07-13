@@ -20,7 +20,7 @@ def get_default_sample():
 
     if failed_rows.empty:
         row = dataset.iloc[0]
-    else:
+    else:     
         row = failed_rows.sample(n=1).iloc[0]
 
     defaults = row.to_dict()
@@ -449,21 +449,7 @@ if submitted:
                     f"**{abs(row['effect']):.2f} percentage points**."
                 )
 
-        st.subheader("Suggested Adjustments")
-        st.caption(
-            "Best local changes found by testing both directions for each parameter."
-        )
-
-        if risk_reductions.empty:
-            st.info(
-                "No meaningful adjustment was found within the tested range."
-            )
-        else:
-            for i, (_, row) in enumerate(
-                risk_reductions.head(5).iterrows(),
-                1
-            ):
-                unit = units.get(row["feature"], "")
+       
 
                 st.write(
                     f"{i}. **{row['direction']} {row['name']}** "
