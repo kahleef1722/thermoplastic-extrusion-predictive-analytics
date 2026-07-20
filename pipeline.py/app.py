@@ -3,7 +3,6 @@ import pandas as pd
 import altair as alt
 import joblib
 from pathlib import Path
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / "synthetic_thermoplastic_extrusion_quality_dataset.csv"
 MODEL_DIR = BASE_DIR
@@ -11,7 +10,8 @@ MODEL1_PATH = MODEL_DIR / "quality_status_model.pkl"
 MODEL2_PATH = MODEL_DIR / "defect_type_model.pkl"
 FEATURES_PATH = MODEL_DIR / "model_features.pkl"
 
-
+LABEL_ENCODER_PATH = MODEL_DIR / "label_encoder.pkl"
+label_encoder = joblib.load(LABEL_ENCODER_PATH) 
 def get_default_sample():
     dataset = pd.read_csv(DATA_PATH)
     failed_rows = dataset[
@@ -422,10 +422,10 @@ if submitted:
         else:
             st.error("Predicted Quality Status: FAIL")
 
-            defect = model2.predict(sample)[0]
+            predicted_label = model2.predict(sample)[0]
+            defect = label_encoder.inverse_transform([predicted_label])[0]
             defect_probs = model2.predict_proba(sample)[0]
             confidence = max(defect_probs) * 100
-
             st.warning(f"Likely Defect: {defect}")
             st.metric(
                 "Defect Confidence",
@@ -524,10 +524,7 @@ if submitted:
             st.subheader("Defect Probability")
 
             defect_df = pd.DataFrame({
-                "Defect": [
-                    str(label)
-                    for label in model2.classes_
-                ],
+                "Defect": label_encoder.inverse_transform(model2.classes_),
                 "Probability": defect_probs * 100
             })
 

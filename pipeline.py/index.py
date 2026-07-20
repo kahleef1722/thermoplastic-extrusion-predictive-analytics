@@ -2,6 +2,7 @@ import pandas as pd
 import joblib
 from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
+
 from lightgbm import LGBMClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
@@ -200,9 +201,10 @@ for name, model in models1.items():
         best_score = f1
         best_model = model
 
+
 model1 = best_model
 
-print("\nBest Model 1 Selected Successfully")
+print("\nSelected Model 1:", type(model1).__name__)
 
 df_failed = df[
     df["Defect_Status"] == 0
@@ -305,11 +307,9 @@ for name, model in models2.items():
     if f1 > best_score:
         best_score = f1
         best_model = model
-
 model2 = best_model
 
-print("\nBest Model 2 Selected Successfully")
-
+print("\nSelected Model 2:", type(model2).__name__)
 def predict_quality(sample):
     sample = sample[features]
 
@@ -397,7 +397,10 @@ print(
     result["Defect_Confidence"],
     "%"
 )
-
+joblib.dump(
+    label_encoder,
+    "label_encoder.pkl"
+)
 joblib.dump(
     model1,
     "quality_status_model.pkl"
