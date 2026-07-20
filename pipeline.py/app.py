@@ -145,9 +145,6 @@ st.title("AI-Based Quality Risk Prediction System")
 st.caption(
     "Predict extrusion failure risk, likely defect type and local parameter sensitivity."
 )
-st.caption(
-    "The form starts from a randomly selected failing record in the dataset so the default prediction is not biased toward PASS."
-)
 
 with st.sidebar:
     st.header("System Guide")
