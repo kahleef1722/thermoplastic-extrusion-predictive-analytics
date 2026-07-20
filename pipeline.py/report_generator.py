@@ -1,3 +1,4 @@
+from matplotlib.pyplot import table
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -8,6 +9,12 @@ from reportlab.platypus import (
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.lib import colors
+HEADER_COLOR = colors.HexColor("#1F4E79")
+LIGHT_BLUE = colors.HexColor("#D9EAF7")
+LIGHT_GREY = colors.HexColor("#F4F4F4")
+SUCCESS = colors.HexColor("#2E8B57")
+WARNING = colors.HexColor("#F4A300")
+DANGER = colors.HexColor("#C62828")
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
@@ -36,9 +43,10 @@ def generate_report(
 
     story = []
 
+    title_style.textColor = HEADER_COLOR
     story.append(
         Paragraph(
-            "AI-Based Quality Risk Prediction Report",
+            "<b>AI-Based Thermoplastic Extrusion Quality Prediction Report</b>",
             title_style
         )
     )
@@ -132,18 +140,40 @@ def generate_report(
     for key, value in inputs.items():
         parameter_data.append([key, str(value)])
 
-    table = Table(parameter_data)
+    table = Table(parameter_data, colWidths=[180, 250])
 
     table.setStyle(
         TableStyle([
-            ("BACKGROUND",(0,0),(-1,0),colors.lightgrey),
-            ("GRID",(0,0),(-1,-1),1,colors.grey),
-            ("BOTTOMPADDING",(0,0),(-1,-1),6)
+            ("BACKGROUND", (0,0), (0,-1), LIGHT_GREY),
+            ("BACKGROUND", (1,0), (1,-1), colors.white),
+            ("GRID", (0,0), (-1,-1), 0.8, colors.grey),
+            ("FONTNAME", (0,0), (-1,-1), "Helvetica-Bold"),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+            ("TOPPADDING", (0,0), (-1,-1), 10),
+            ("VALIGN",(0,0),(-1,-1),"MIDDLE")
         ])
     )
 
-    story.append(table)
+    # ===== ADD STEP 4 HERE =====
 
+    table.setStyle(TableStyle([
+        ("TEXTCOLOR", (1,0), (1,0),
+         SUCCESS if prediction == "PASS" else DANGER)
+    ]))
+
+    risk_color = {
+        "Low Risk": SUCCESS,
+        "Moderate Risk": WARNING,
+        "High Risk": DANGER
+    }.get(risk_level, colors.black)
+
+    table.setStyle(TableStyle([
+        ("TEXTCOLOR", (1,2), (1,2), risk_color)
+    ]))
+
+    # ===== END OF STEP 4 =====
+
+    story.append(table)
     story.append(Spacer(1, 0.3 * inch))
 
     story.append(
