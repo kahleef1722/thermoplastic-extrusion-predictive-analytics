@@ -4,3 +4,7 @@ numpy
 scikit-learn
 joblib
 plotly
+reportlab
+xgboost
+lightgbm
+imbalanced-learn
