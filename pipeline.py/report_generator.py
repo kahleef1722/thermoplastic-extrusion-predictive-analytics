@@ -5,6 +5,8 @@ from reportlab.platypus import (
     Paragraph,
     Spacer
 )
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.enums import TA_CENTER
@@ -42,8 +44,7 @@ def generate_report(
     )
 
     story.append(Spacer(1, 0.25 * inch))
-
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
 
     story.append(
         Paragraph(
