@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+from report_generator import generate_report
+import os
 import joblib
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -304,10 +306,32 @@ if submitted:
         "Puller_Speed_m_min": puller,
         "Material_Moisture_pct": moisture
     }
+    input_summary = {
+        "Material": material,
+        "Braid": braid,
+        "Machine": machine,
+        "Target OD (mm)": target_od,
+        "Target ID (mm)": target_id,
+        "Wall Thickness (mm)": target_wall,
+        "OD Tolerance (mm)": od_tol,
+        "ID Tolerance (mm)": id_tol,
+        "Wall Tolerance (mm)": wall_tol,
+        "Vacuum (bar)": vacuum,
+        "Screw Speed (RPM)": rpm,
+        "Zone 2 Temp (°C)": z2,
+        "Zone 3 Temp (°C)": z3,
+        "Melt Pressure (bar)": pressure,
+        "Puller Speed (m/min)": puller,
+        "Material Moisture (%)": moisture
+    }
 
     sample = pd.DataFrame([values])[features]
 
+    
+
     status = model1.predict(sample)[0]
+    
+                      
     status_probs = model1.predict_proba(sample)[0]
 
     fail_index = list(model1.classes_).index(0)
@@ -406,6 +430,7 @@ if submitted:
         "PASS" if status == 1 else "FAIL"
     )
 
+    recommendations = []
     left, right = st.columns(2)
 
     with left:
@@ -471,7 +496,12 @@ if submitted:
                     f"**{abs(row['effect']):.2f} percentage points**."
                 )
 
-    with right:
+                recommendations.append(
+                    f"{row['direction']} {row['name']} from "
+                    f"{row['current']:.2f} to "
+                    f"{row['tested']:.2f} {unit}"
+                )
+
         st.subheader("Quality Probability")
 
         status_df = pd.DataFrame({
@@ -626,27 +656,55 @@ if submitted:
             )
 
             st.altair_chart(
-                impact_chart,width="stretch"
+                impact_chart,
+                width="stretch"
             )
 
     with st.expander("View Input Summary"):
         display_sample = sample.copy()
         display_sample["Material_Type"] = material
-        display_sample["Braid_type_Planned"] = braid
+        display_sample["Braid_Type_Planned"] = braid
         display_sample["Machine_ID"] = machine
-        
+
         display_df = display_sample.T.rename(columns={0: "Value"})
-        
         display_df["Value"] = display_df["Value"].astype(str)
 
     st.dataframe(
         display_df,
         width="stretch"
     )
-
     st.caption(
         "Important: risk contributors and suggested adjustments represent local "
         "model sensitivity, not proven physical causation. Validate process changes "
         "with production trials and engineering limits before changing machine settings."
-
     )
+
+    prediction_text = "PASS" if status == 1 else "FAIL"
+
+    if status == 0:
+        defect_name = defect
+        confidence_value = confidence
+    else:
+        defect_name = "None"
+        confidence_value = 100.0
+
+    pdf_name = "Quality_Risk_Report.pdf"
+
+    generate_report(
+        filename=pdf_name,
+        prediction=prediction_text,
+        failure_risk=fail_risk,
+        risk_level=risk_level,
+        defect=defect_name,
+        confidence=confidence_value,
+        inputs=input_summary,
+        recommendations=recommendations
+    )
+
+    with open(pdf_name, "rb") as pdf:
+        st.download_button(
+            "📄 Download Quality Report",
+            pdf,
+            file_name=pdf_name,
+            mime="application/pdf"
+        )
