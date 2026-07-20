@@ -1,4 +1,4 @@
-from matplotlib.pyplot import table
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
